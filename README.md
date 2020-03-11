@@ -1,1 +1,1 @@
-# optical_character_recognition
+# optical character recognition with tesseract
