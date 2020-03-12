@@ -32,12 +32,15 @@ for page in pages:
     image_counter = image_counter + 1
 
 # print(tesserocr.tesseract_version())
-
 import pytesseract
-#pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-pytesseract.pytesseract.tesseract_cmd = r"/usr/bin/tesseract"
-# custom_oem_psm_config = r'--oem 3 --psm 6'
-custom_oem_psm_config = r'--psm 6'
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+
+
+
+
+#pytesseract.pytesseract.tesseract_cmd = r"/usr/bin/tesseract"
+custom_oem_psm_config = r'--oem 3 --psm 6'
+#custom_oem_psm_config = r'--psm 6'
 
 # Variable to get count of total number of pages
 filelimit = image_counter - 1
@@ -61,7 +64,7 @@ for i in range(1, filelimit + 1):
 
     # Recognize the text as string in image using pytesserct
     text = str(((pytesseract.image_to_string(Image.open(filename), config=custom_oem_psm_config))))
-    print(text)
+
 
     # The recognized text is stored in variable text
     # Any string processing may be applied on text
@@ -72,10 +75,13 @@ for i in range(1, filelimit + 1):
     # Eg: This is a sample text this word here GeeksF-
     # orGeeks is half on first line, remaining on next.
     # To remove this, we replace every '-\n' to ''.
-    text = text.replace('-\n', '')
+    #text = text.replace('-\n', '')
 
     # Finally, write the processed text to the file.
     f.write(text)
 
 # Close the file after writing all the text.
 f.close()
+
+
+
