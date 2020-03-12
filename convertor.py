@@ -34,7 +34,8 @@ for page in pages:
 # print(tesserocr.tesseract_version())
 
 import pytesseract
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+#pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+pytesseract.pytesseract.tesseract_cmd = r"/usr/bin/tesseract"
 # custom_oem_psm_config = r'--oem 3 --psm 6'
 custom_oem_psm_config = r'--psm 6'
 
