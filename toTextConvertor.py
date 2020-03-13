@@ -39,7 +39,7 @@ pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tessera
 
 
 #pytesseract.pytesseract.tesseract_cmd = r"/usr/bin/tesseract"
-custom_oem_psm_config = r'--oem 3 --psm 6'
+custom_oem_psm_config = r'--oem 3 --psm 11'
 #custom_oem_psm_config = r'--psm 6'
 
 # Variable to get count of total number of pages
