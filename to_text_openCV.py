@@ -3,8 +3,8 @@ import numpy as np
 import pytesseract
 from PIL import Image
 print ("Hello")
-src_path = "E:\\optical_character_recognition\\hand_written.jpg"
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+src_path = "page_1.jpg"
+pytesseract.pytesseract.tesseract_cmd = r"/usr/bin/tesseract"
 
 
 print (src_path)
@@ -25,13 +25,13 @@ img = cv2.erode(img, kernel, iterations=1)
 cv2.imwrite(src_path + "removed_noise.png", img)
 
 #  Apply threshold to get image with only black and white
-#img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 2)
+img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 2)
 
 # Write the image after apply opencv to do some ...
-cv2.imwrite(src_path + "thres.png", img)
+#cv2.imwrite(src_path + "thres.png", img)
 
 # Recognize text with tesseract for python
-result = pytesseract.image_to_string(Image.open(src_path + "thres.png"))
+#result = pytesseract.image_to_string(Image.open(src_path + "thres.png"))
 
 
 # Remove template file
@@ -39,11 +39,12 @@ result = pytesseract.image_to_string(Image.open(src_path + "thres.png"))
 
 
 import pytesseract, re
-f = src_path + "thres.png"
+#f = src_path + "thres.png"
 custom_oem_psm_config = r'--oem 3 --psm 6'
-t = pytesseract.image_to_string(Image.open(f), config=custom_oem_psm_config)
-print(t+"\n")
-m = re.findall(r"(?<=ORDER).+", t)
+#t = pytesseract.image_to_string(Image.open(f), config=custom_oem_psm_config)
+t = pytesseract.image_to_string(img, config=custom_oem_psm_config)
+# print(t+"\n")
+m = re.findall(r"(?<=COMPANY).+", t)
 print(m)
 if m:
     print(m[0])

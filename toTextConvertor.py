@@ -1,5 +1,13 @@
 from PIL import Image
 from pdf2image import convert_from_path
+import re
+import pytesseract
+import cv2.cv2 as cv2
+import numpy as np
+import os
+
+pytesseract.pytesseract.tesseract_cmd = r"/usr/bin/tesseract"
+custom_oem_psm_config = r'--oem 3 --psm 6'
 
 # column = Image.open('code.png')
 # gray = column.convert('L')
@@ -15,6 +23,8 @@ pages = convert_from_path(PDF_file, 500)
 image_counter = 1
 
 # Iterate through all the pages stored above
+t = ""
+
 for page in pages:
     # Declaring filename for each page of PDF as JPG
     # For each page, filename will be:
@@ -24,64 +34,29 @@ for page in pages:
     # ....
     # PDF page n -> page_n.jpg
     filename = "page_" + str(image_counter) + ".jpg"
-
-    # Save the image of the page in system
     page.save(filename, 'JPEG')
 
-    # Increment the counter to update filename
-    image_counter = image_counter + 1
+    img = cv2.imread(filename)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-# print(tesserocr.tesseract_version())
-import pytesseract
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    # Apply dilation and erosion to remove some noise
+    kernel = np.ones((1, 1), np.uint8)
+    img = cv2.dilate(img, kernel, iterations=1)
+    img = cv2.erode(img, kernel, iterations=1)
+    img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 2)
 
+    text = str(((pytesseract.image_to_string(img, config=custom_oem_psm_config))))
+    t += text+"\n"
 
+    os.remove(filename)
 
+information_extracted = ["DATE", "ORDER NO", "COMPANY", "FROM", "STYLE NAME", "Style Number"]
 
-#pytesseract.pytesseract.tesseract_cmd = r"/usr/bin/tesseract"
-custom_oem_psm_config = r'--oem 3 --psm 11'
-#custom_oem_psm_config = r'--psm 6'
-
-# Variable to get count of total number of pages
-filelimit = image_counter - 1
-
-# Creating a text file to write the output
-outfile = "out_text.txt"
-
-# Open the file in append mode so that
-# All contents of all images are added to the same file
-f = open(outfile, "a")
-
-# Iterate from 1 to total number of pages
-for i in range(1, filelimit + 1):
-    # Set filename to recognize text from
-    # Again, these files will be:
-    # page_1.jpg
-    # page_2.jpg
-    # ....
-    # page_n.jpg
-    filename = "page_" + str(i) + ".jpg"
-
-    # Recognize the text as string in image using pytesserct
-    text = str(((pytesseract.image_to_string(Image.open(filename), config=custom_oem_psm_config))))
-
-
-    # The recognized text is stored in variable text
-    # Any string processing may be applied on text
-    # Here, basic formatting has been done:
-    # In many PDFs, at line ending, if a word can't
-    # be written fully, a 'hyphen' is added.
-    # The rest of the word is written in the next line
-    # Eg: This is a sample text this word here GeeksF-
-    # orGeeks is half on first line, remaining on next.
-    # To remove this, we replace every '-\n' to ''.
-    #text = text.replace('-\n', '')
-
-    # Finally, write the processed text to the file.
-    f.write(text)
-
-# Close the file after writing all the text.
-f.close()
+print(t)
+m = re.findall(r"(?<=Style Number).+", t)
+print(m)
+if m:
+    print(m[0])
 
 
 
