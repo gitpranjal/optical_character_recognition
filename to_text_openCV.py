@@ -1,50 +1,83 @@
-import cv2.cv2 as cv2
-import numpy as np
-import pytesseract
-from PIL import Image
-print ("Hello")
-src_path = "page_1.jpg"
-pytesseract.pytesseract.tesseract_cmd = r"/usr/bin/tesseract"
+# Capture the mouse click events in Python and OpenCV
+'''
+-> draw shape on any image
+-> reset shape on selection
+-> crop the selection
+run the code : python capture_events.py --image image_example.jpg
+'''
 
 
-print (src_path)
+# import the necessary packages
+import argparse
+import cv2
+from pdf2image import convert_from_path
+import user_text_input_gui
+
+pages = convert_from_path("doc.pdf", 500)
+pages[0].save("page_1", 'JPEG')
+# initialize the list of reference points and boolean indicating
+# whether cropping is being performed or not
+ref_point = []
+cropping = False
+
+def shape_selection(event, x, y, flags, param):
+  # grab references to the global variables
+  global ref_point, cropping
+
+  # if the left mouse button was clicked, record the starting
+  # (x, y) coordinates and indicate that cropping is being
+  # performed
+  if event == cv2.EVENT_LBUTTONDOWN:
+    ref_point = [(x, y)]
+    cropping = True
+
+  # check to see if the left mouse button was released
+  elif event == cv2.EVENT_LBUTTONUP:
+    # record the ending (x, y) coordinates and indicate that
+    # the cropping operation is finished
+    ref_point.append((x, y))
+    cropping = False
+
+    # draw a rectangle around the region of interest
+    cv2.rectangle(image, ref_point[0], ref_point[1], (0, 255, 0), 2)
+    cv2.imshow("image", image)
+    user_text_input_gui.create_widget()
 
 
-# Read image with opencv
-img = cv2.imread(src_path)
+# construct the argument parser and parse the arguments
+ap = argparse.ArgumentParser()
+ap.add_argument("-i", "--image", required=True, help="Path to the image")
+args = vars(ap.parse_args())
 
-# Convert to gray
-img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+# load the image, clone it, and setup the mouse callback function
+image = cv2.imread(args["image"])
+image = cv2.resize(image, (2500, 1700))
+clone = image.copy()
+cv2.namedWindow("image")
+cv2.setMouseCallback("image", shape_selection)
 
-# Apply dilation and erosion to remove some noise
-kernel = np.ones((1, 1), np.uint8)
-img = cv2.dilate(img, kernel, iterations=1)
-img = cv2.erode(img, kernel, iterations=1)
+# keep looping until the 'q' key is pressed
 
-# Write image after removed noise
-cv2.imwrite(src_path + "removed_noise.png", img)
+while True:
+  # display the image and wait for a keypress
 
-#  Apply threshold to get image with only black and white
-img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 2)
+  cv2.imshow("image", image)
+  key = cv2.waitKey(1) & 0xFF
 
-# Write the image after apply opencv to do some ...
-#cv2.imwrite(src_path + "thres.png", img)
+  # if the 'r' key is pressed, reset the cropping region
+  if key == ord("r"):
+    image = clone.copy()
 
-# Recognize text with tesseract for python
-#result = pytesseract.image_to_string(Image.open(src_path + "thres.png"))
+  # if the 'c' key is pressed, break from the loop
+  elif key == ord("c"):
+    break
 
+# if there are two reference points, then crop the region of interest
+# from teh image and display it
+if len(ref_point) == 2:
+  crop_img = clone[ref_point[0][1]:ref_point[1][1], ref_point[0][0]:ref_point[1][0]]
+  cv2.imshow("crop_img", crop_img)
+  cv2.waitKey(0)
 
-# Remove template file
-#os.remove(temp)
-
-
-import pytesseract, re
-#f = src_path + "thres.png"
-custom_oem_psm_config = r'--oem 3 --psm 6'
-#t = pytesseract.image_to_string(Image.open(f), config=custom_oem_psm_config)
-t = pytesseract.image_to_string(img, config=custom_oem_psm_config)
-# print(t+"\n")
-m = re.findall(r"(?<=COMPANY).+", t)
-print(m)
-if m:
-    print(m[0])
+# close all open windows
+cv2.destroyAllWindows()
